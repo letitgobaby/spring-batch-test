@@ -20,8 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class CreateMessageTasklet implements Tasklet, StepExecutionListener {
   
+  private final int TEST_CREATE_MESSAGE_SIZE = 20;
   private List<User> users;
-
   private MessageRepo messageRepo;
   private UserRepo userRepo;
 
@@ -41,7 +41,7 @@ public class CreateMessageTasklet implements Tasklet, StepExecutionListener {
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
     System.out.println("** executeStep **");
     Random random = new Random();
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < TEST_CREATE_MESSAGE_SIZE; i++) {
       String randomString = String.valueOf(random.nextInt());
       User user = users.get(random.nextInt(users.size()));
 

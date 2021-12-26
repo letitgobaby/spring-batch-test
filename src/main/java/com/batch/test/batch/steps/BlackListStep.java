@@ -30,7 +30,7 @@ public class BlackListStep {
   private final BlackListRepo blackListRepo;
   private final int CHUNK_SIZE = 100;
 
-  private HashMap<Long, BlackList> map = new HashMap<>();
+  // private HashMap<Long, BlackList> map = new HashMap<>();
 
   public Step filterBlackList() {
     return stepBuilderFactory.get("black-list-step")
@@ -62,22 +62,28 @@ public class BlackListStep {
         BlackList entity = black.get();
         entity.setCount(entity.getCount()+ 1);
         return entity;
-      }
+      } 
+
+      BlackList newBlackObj = new BlackList();
+      newBlackObj.setCount(1L);
+      newBlackObj.setUser(user);
+
+      return newBlackObj;
       
-      if (map.containsKey(user.getId())) {
-        BlackList existedObj = map.get(user.getId());
-        existedObj.setCount(existedObj.getCount() + 1);
-        map.put(user.getId(), existedObj);
-        // map.replace(key, oldValue, newValue)
-        return existedObj;
-      } else {
-        BlackList newBlackObj = new BlackList();
-        newBlackObj.setCount(1L);
-        newBlackObj.setUser(user);
-        map.putIfAbsent(user.getId(), newBlackObj);
-        
-        return newBlackObj;
-      }
+      
+      // if (map.containsKey(user.getId())) {
+      //   BlackList existedObj = map.get(user.getId());
+      //   existedObj.setCount(existedObj.getCount() + 1);
+      //   map.put(user.getId(), existedObj);
+      //   // map.replace(key, oldValue, newValue)
+      //   return existedObj;
+      // } else {
+      //   BlackList newBlackObj = new BlackList();
+      //   newBlackObj.setCount(1L);
+      //   newBlackObj.setUser(user);
+      //   map.putIfAbsent(user.getId(), newBlackObj);
+      //   return newBlackObj;
+      // }
     };
   }
 
