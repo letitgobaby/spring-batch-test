@@ -1,6 +1,7 @@
 package com.batch.test.batch.steps;
 
 import java.util.HashMap;
+import java.util.Optional;
 
 import javax.persistence.EntityManagerFactory;
 
@@ -29,9 +30,11 @@ public class BlackListStep {
   private final BlackListRepo blackListRepo;
   private final int CHUNK_SIZE = 100;
 
+  private HashMap<Long, BlackList> map = new HashMap<>();
+
   public Step filterBlackList() {
     return stepBuilderFactory.get("black-list-step")
-    .<Message, BlackList>chunk(100)
+    .<Message, BlackList>chunk(1) // this config for chunk size of itemWriter
     .reader(jpaItemReader())
     .processor(itemProcessor())
     .writer(jpaPagingItemWriter())
@@ -43,7 +46,7 @@ public class BlackListStep {
     JpaPagingItemReader<Message> jpaPagingItemReader = new JpaPagingItemReader<Message>();
     jpaPagingItemReader.setQueryString("select m from Message m where m.content < 1");
     jpaPagingItemReader.setEntityManagerFactory(entityManagerFactory);
-    jpaPagingItemReader.setPageSize(CHUNK_SIZE);
+    jpaPagingItemReader.setPageSize(CHUNK_SIZE);  // this config for paging size of itemReader
 
     return jpaPagingItemReader;
   }
@@ -52,27 +55,29 @@ public class BlackListStep {
   // TODO: Chunk 단위 중복삽입 체크
   @Bean
   public ItemProcessor<Message, BlackList> itemProcessor() {
-    HashMap<Long, BlackList> map = new HashMap<>();
     return message -> {
       User user = message.getUser();
-      BlackList black = blackListRepo.findByUserId(user.getId());
-      
-      if (black != null) {
-        black.setCount(black.getCount()+ 1);
-        return black;
-
-      } else if (map.containsKey(user.getId())) {
-        BlackList obj = map.get(user.getId());
-        obj.setCount(obj.getCount() + 1);
-        map.put(user.getId(), obj);
+      Optional<BlackList> black = blackListRepo.findByUserId(user.getId());
+      if (black.isPresent()) {
+        BlackList entity = black.get();
+        entity.setCount(entity.getCount()+ 1);
+        return entity;
       }
-
-      BlackList blackList = new BlackList();
-      blackList.setCount(1L);
-      blackList.setUser(user);
-      map.put(user.getId(), blackList);
-
-      return blackList;
+      
+      if (map.containsKey(user.getId())) {
+        BlackList existedObj = map.get(user.getId());
+        existedObj.setCount(existedObj.getCount() + 1);
+        map.put(user.getId(), existedObj);
+        // map.replace(key, oldValue, newValue)
+        return existedObj;
+      } else {
+        BlackList newBlackObj = new BlackList();
+        newBlackObj.setCount(1L);
+        newBlackObj.setUser(user);
+        map.putIfAbsent(user.getId(), newBlackObj);
+        
+        return newBlackObj;
+      }
     };
   }
 

@@ -1,5 +1,7 @@
 package com.batch.test.repository;
 
+import java.util.Optional;
+
 import com.batch.test.entity.BlackList;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,6 +12,6 @@ public interface BlackListRepo extends JpaRepository<BlackList, Long> {
   
   long countByUserId(long id);
 
-  BlackList findByUserId(Long id); 
+  Optional<BlackList> findByUserId(Long id); 
 
 }
