@@ -41,6 +41,7 @@ public class BlackListStep {
     .build();
   }
 
+
   @Bean
   public JpaPagingItemReader<Message> jpaItemReader() {
     JpaPagingItemReader<Message> jpaPagingItemReader = new JpaPagingItemReader<Message>();
@@ -51,12 +52,13 @@ public class BlackListStep {
     return jpaPagingItemReader;
   }
 
-
   // TODO: Chunk 단위 중복삽입 체크
   @Bean
   public ItemProcessor<Message, BlackList> itemProcessor() {
     return message -> {
       User user = message.getUser();
+
+      // update entity
       Optional<BlackList> black = blackListRepo.findByUserId(user.getId());
       if (black.isPresent()) {
         BlackList entity = black.get();
@@ -64,26 +66,11 @@ public class BlackListStep {
         return entity;
       } 
 
+      // create new entity
       BlackList newBlackObj = new BlackList();
       newBlackObj.setCount(1L);
       newBlackObj.setUser(user);
-
       return newBlackObj;
-      
-      
-      // if (map.containsKey(user.getId())) {
-      //   BlackList existedObj = map.get(user.getId());
-      //   existedObj.setCount(existedObj.getCount() + 1);
-      //   map.put(user.getId(), existedObj);
-      //   // map.replace(key, oldValue, newValue)
-      //   return existedObj;
-      // } else {
-      //   BlackList newBlackObj = new BlackList();
-      //   newBlackObj.setCount(1L);
-      //   newBlackObj.setUser(user);
-      //   map.putIfAbsent(user.getId(), newBlackObj);
-      //   return newBlackObj;
-      // }
     };
   }
 

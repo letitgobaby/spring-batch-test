@@ -12,7 +12,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "MESSAGE")
-public class Message {
+public class Message extends DateEntity {
   
   @Id
   @Column(name = "ID")

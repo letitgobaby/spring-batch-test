@@ -9,13 +9,12 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-
 import lombok.ToString;
 
 @ToString
 @Entity
 @Table(name = "BLACK_LIST")
-public class BlackList {
+public class BlackList extends DateEntity {
   
   @Id
   @Column(name = "ID")
