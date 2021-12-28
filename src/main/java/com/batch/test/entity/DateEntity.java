@@ -8,6 +8,7 @@ import javax.persistence.MappedSuperclass;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+
 @MappedSuperclass
 public abstract class DateEntity {
   
@@ -16,7 +17,7 @@ public abstract class DateEntity {
   private LocalDateTime createDate;
 
   @UpdateTimestamp
-  @Column(name = "UPDATE_DATE")
+  @Column(name = "UPDATE_DATE", insertable = false)
   private LocalDateTime updateDate;
 
   public LocalDateTime getCreateDate() {

@@ -1,6 +1,5 @@
 package com.batch.test.batch.steps;
 
-import java.util.HashMap;
 import java.util.Optional;
 
 import javax.persistence.EntityManagerFactory;
@@ -16,25 +15,32 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.database.JpaPagingItemReader;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
 
-import lombok.RequiredArgsConstructor;
-
-@Component
-@RequiredArgsConstructor
 public class BlackListStep {
 
-  private final StepBuilderFactory stepBuilderFactory;
-  private final EntityManagerFactory entityManagerFactory;
-  private final BlackListRepo blackListRepo;
+  private StepBuilderFactory stepBuilderFactory;
+  private EntityManagerFactory entityManagerFactory;
+  private BlackListRepo blackListRepo;
+
   private final int CHUNK_SIZE = 100;
 
-  // private HashMap<Long, BlackList> map = new HashMap<>();
+  public BlackListStep(
+    StepBuilderFactory stepBuilderFactory,
+    EntityManagerFactory entityManagerFactory,
+    BlackListRepo blackListRepo
+  ) {
+    this.stepBuilderFactory = stepBuilderFactory;
+    this.entityManagerFactory = entityManagerFactory;
+    this.blackListRepo = blackListRepo;
+  }
 
-  public Step filterBlackList() {
+
+  public Step stepOn() {
+    System.out.println("\n\n");
+    System.out.println("hello!!!!");
+    System.out.println("\n\n");
     return stepBuilderFactory.get("black-list-step")
-    .<Message, BlackList>chunk(1) // this config for chunk size of itemWriter
+    .<Message, BlackList>chunk(1) // this config for transaction size(i mean chunk size) of itemWriter
     .reader(jpaItemReader())
     .processor(itemProcessor())
     .writer(jpaPagingItemWriter())
@@ -42,8 +48,7 @@ public class BlackListStep {
   }
 
 
-  @Bean
-  public JpaPagingItemReader<Message> jpaItemReader() {
+  private JpaPagingItemReader<Message> jpaItemReader() {
     JpaPagingItemReader<Message> jpaPagingItemReader = new JpaPagingItemReader<Message>();
     jpaPagingItemReader.setQueryString("select m from Message m where m.content < 1");
     jpaPagingItemReader.setEntityManagerFactory(entityManagerFactory);
@@ -52,9 +57,7 @@ public class BlackListStep {
     return jpaPagingItemReader;
   }
 
-  // TODO: Chunk 단위 중복삽입 체크
-  @Bean
-  public ItemProcessor<Message, BlackList> itemProcessor() {
+  private ItemProcessor<Message, BlackList> itemProcessor() {
     return message -> {
       User user = message.getUser();
 
@@ -64,7 +67,7 @@ public class BlackListStep {
         BlackList entity = black.get();
         entity.setCount(entity.getCount()+ 1);
         return entity;
-      } 
+      }
 
       // create new entity
       BlackList newBlackObj = new BlackList();
@@ -74,14 +77,11 @@ public class BlackListStep {
     };
   }
 
-  @Bean
-  public ItemWriter<BlackList> jpaPagingItemWriter() {
+  private ItemWriter<BlackList> jpaPagingItemWriter() {
     JpaItemWriter<BlackList> jpaItemWriter = new JpaItemWriter<>();
     jpaItemWriter.setEntityManagerFactory(entityManagerFactory);
 
     return jpaItemWriter;
   }
 
-
-  
 }
