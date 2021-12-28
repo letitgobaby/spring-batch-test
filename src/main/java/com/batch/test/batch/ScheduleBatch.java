@@ -1,5 +1,8 @@
 package com.batch.test.batch;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -30,6 +33,7 @@ public class ScheduleBatch {
   public void runMainJob() throws Exception {
     JobParameters jobParameters = new JobParametersBuilder()
     .addString("filter-msg-job", String.valueOf(System.currentTimeMillis()))
+    .addString("startTime", LocalDateTime.now().minusSeconds(20).toString())
     .toJobParameters();
 
     jobLauncher.run(mainJob.mainJob(), jobParameters);

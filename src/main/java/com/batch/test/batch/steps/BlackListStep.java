@@ -1,5 +1,10 @@
 package com.batch.test.batch.steps;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.persistence.EntityManagerFactory;
@@ -10,54 +15,59 @@ import com.batch.test.entity.User;
 import com.batch.test.repository.BlackListRepo;
 
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.database.JpaPagingItemReader;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
+import lombok.RequiredArgsConstructor;
+
+@Configuration
+@RequiredArgsConstructor
 public class BlackListStep {
 
-  private StepBuilderFactory stepBuilderFactory;
-  private EntityManagerFactory entityManagerFactory;
-  private BlackListRepo blackListRepo;
-
+  private final StepBuilderFactory stepBuilderFactory;
+  private final EntityManagerFactory entityManagerFactory;
+  private final BlackListRepo blackListRepo;
   private final int CHUNK_SIZE = 100;
 
-  public BlackListStep(
-    StepBuilderFactory stepBuilderFactory,
-    EntityManagerFactory entityManagerFactory,
-    BlackListRepo blackListRepo
-  ) {
-    this.stepBuilderFactory = stepBuilderFactory;
-    this.entityManagerFactory = entityManagerFactory;
-    this.blackListRepo = blackListRepo;
-  }
 
-
+  @Bean
+  @JobScope
   public Step stepOn() {
-    System.out.println("\n\n");
-    System.out.println("hello!!!!");
-    System.out.println("\n\n");
     return stepBuilderFactory.get("black-list-step")
     .<Message, BlackList>chunk(1) // this config for transaction size(i mean chunk size) of itemWriter
-    .reader(jpaItemReader())
+    .reader(jpaItemReader(null))
     .processor(itemProcessor())
     .writer(jpaPagingItemWriter())
     .build();
   }
 
 
-  private JpaPagingItemReader<Message> jpaItemReader() {
+  @Bean
+  @StepScope
+  public JpaPagingItemReader<Message> jpaItemReader(@Value("#{jobParameters[startTime]}") String startTime) {
     JpaPagingItemReader<Message> jpaPagingItemReader = new JpaPagingItemReader<Message>();
-    jpaPagingItemReader.setQueryString("select m from Message m where m.content < 1");
+    jpaPagingItemReader.setQueryString("select m from Message m where m.content < 1 and m.createDate > :startTime");
     jpaPagingItemReader.setEntityManagerFactory(entityManagerFactory);
     jpaPagingItemReader.setPageSize(CHUNK_SIZE);  // this config for paging size of itemReader
+
+    Map<String, Object> parameters = new HashMap<>();
+    parameters.put("startTime", LocalDateTime.parse(startTime) );
+    jpaPagingItemReader.setParameterValues(parameters);
 
     return jpaPagingItemReader;
   }
 
-  private ItemProcessor<Message, BlackList> itemProcessor() {
+  @Bean
+  public ItemProcessor<Message, BlackList> itemProcessor() {
     return message -> {
       User user = message.getUser();
 
@@ -77,7 +87,8 @@ public class BlackListStep {
     };
   }
 
-  private ItemWriter<BlackList> jpaPagingItemWriter() {
+  @Bean
+  public ItemWriter<BlackList> jpaPagingItemWriter() {
     JpaItemWriter<BlackList> jpaItemWriter = new JpaItemWriter<>();
     jpaItemWriter.setEntityManagerFactory(entityManagerFactory);
 
