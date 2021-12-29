@@ -9,9 +9,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import lombok.ToString;
 
-@ToString
 @Entity
 @Table(name = "BLACK_LIST")
 public class BlackList extends DateEntity {
@@ -53,5 +51,9 @@ public class BlackList extends DateEntity {
   public void setUser(User user) {
     this.user = user;
   } 
+
+  public String toString() {
+    return "[ id=" + this.id.toString() + ", count=" + this.count.toString() + ", user=" + this.user.toString() +" ]";
+  }
 
 }

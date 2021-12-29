@@ -1,8 +1,6 @@
 package com.batch.test.batch.steps;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -25,7 +23,6 @@ import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 
@@ -54,15 +51,15 @@ public class BlackListStep {
   @Bean
   @StepScope
   public JpaPagingItemReader<Message> jpaItemReader(@Value("#{jobParameters[startTime]}") String startTime) {
+    Map<String, Object> parameters = new HashMap<>();
+    parameters.put("startTime", LocalDateTime.parse(startTime));
+
     JpaPagingItemReader<Message> jpaPagingItemReader = new JpaPagingItemReader<Message>();
     jpaPagingItemReader.setQueryString("select m from Message m where m.content < 1 and m.createDate > :startTime");
+    jpaPagingItemReader.setParameterValues(parameters);
     jpaPagingItemReader.setEntityManagerFactory(entityManagerFactory);
     jpaPagingItemReader.setPageSize(CHUNK_SIZE);  // this config for paging size of itemReader
-
-    Map<String, Object> parameters = new HashMap<>();
-    parameters.put("startTime", LocalDateTime.parse(startTime) );
-    jpaPagingItemReader.setParameterValues(parameters);
-
+    
     return jpaPagingItemReader;
   }
 
