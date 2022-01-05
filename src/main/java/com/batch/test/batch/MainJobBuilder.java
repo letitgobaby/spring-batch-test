@@ -19,15 +19,15 @@ public class MainJobBuilder {
   private final MessageStep msgStep;
 
   @Bean
-  public Job mainJob() {
-    return jobBuilderFactory.get("filter-job")
+  public Job filterJob() {
+    return jobBuilderFactory.get("filter-msg-job")
       .start(blackListStep.stepOn())
       .build();
   }
 
   @Bean
   public Job createJob() {
-    return jobBuilderFactory.get("main-job")
+    return jobBuilderFactory.get("create-msg-job")
       .start(msgStep.CreateMsgStep())
       .build();
   }

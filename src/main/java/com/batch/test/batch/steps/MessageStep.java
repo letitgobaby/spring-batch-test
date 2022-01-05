@@ -20,7 +20,7 @@ public class MessageStep {
   private final UserRepo userRepo;
 
   public Step CreateMsgStep() {
-    return stepBuilderFactory.get("create-step")
+    return stepBuilderFactory.get("create-msg-step")
       .tasklet(new CreateMessageTasklet(messageRepo, userRepo))
       .build();
   }

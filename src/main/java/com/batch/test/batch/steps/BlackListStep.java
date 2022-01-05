@@ -39,7 +39,7 @@ public class BlackListStep {
   @Bean
   @JobScope
   public Step stepOn() {
-    return stepBuilderFactory.get("black-list-step")
+    return stepBuilderFactory.get("blackList-filter-step")
     .<Message, BlackList>chunk(1) // this config for transaction size(i mean chunk size) of itemWriter
     .reader(jpaItemReader(null))
     .processor(itemProcessor())

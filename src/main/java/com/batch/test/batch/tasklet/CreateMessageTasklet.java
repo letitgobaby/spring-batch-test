@@ -33,13 +33,13 @@ public class CreateMessageTasklet implements Tasklet, StepExecutionListener {
 
   @Override
   public void beforeStep(StepExecution stepExecution) {
-    System.out.println("** beforeStep **");
+    System.out.println("** before tasklet **");
     users = userRepo.findAll();
   }
 
   @Override
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-    System.out.println("** executeStep **");
+    System.out.println("** execute tasklet **");
     Random random = new Random();
     for (int i = 0; i < TEST_CREATE_MESSAGE_SIZE; i++) {
       String randomString = String.valueOf(random.nextInt());
@@ -54,7 +54,7 @@ public class CreateMessageTasklet implements Tasklet, StepExecutionListener {
 
   @Override
   public ExitStatus afterStep(StepExecution stepExecution) {
-    System.out.println("** afterStepStep **");
+    System.out.println("** after tasklet **");
     return ExitStatus.COMPLETED;
   }
 

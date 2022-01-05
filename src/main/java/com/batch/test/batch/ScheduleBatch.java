@@ -22,7 +22,7 @@ public class ScheduleBatch {
   @Scheduled(fixedDelay = (1 * 30000))
   public void runCreateMsgJob() throws Exception {
     JobParameters jobParameters = new JobParametersBuilder()
-    .addString("create-msg-job", String.valueOf(System.currentTimeMillis()))
+    .addString("create-sample-msg-job", String.valueOf(System.currentTimeMillis()))
     .toJobParameters();
 
     jobLauncher.run(mainJob.createJob(), jobParameters);
@@ -35,7 +35,7 @@ public class ScheduleBatch {
     .addString("startTime", LocalDateTime.now().minusSeconds(20).toString())
     .toJobParameters();
 
-    jobLauncher.run(mainJob.mainJob(), jobParameters);
+    jobLauncher.run(mainJob.filterJob(), jobParameters);
   }
 
 }
