@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import lombok.RequiredArgsConstructor;
+import net.javacrumbs.shedlock.core.SchedulerLock;
 
 @EnableScheduling
 @Configuration
@@ -19,7 +20,9 @@ public class ScheduleBatch {
   private final MainJobBuilder mainJob;
   private final JobLauncher jobLauncher;
 
-  @Scheduled(fixedDelay = (1 * 30000))
+  // @Scheduled(fixedDelay = (1 * 30000))
+  @Scheduled(cron = "0 0/1 * * * ?")
+  @SchedulerLock(name = "CreateScheduler_msgJob", lockAtLeastForString = "PT30S", lockAtMostForString = "PT1M")
   public void runCreateMsgJob() throws Exception {
     JobParameters jobParameters = new JobParametersBuilder()
     .addString("create-sample-msg-job", String.valueOf(System.currentTimeMillis()))
@@ -28,7 +31,9 @@ public class ScheduleBatch {
     jobLauncher.run(mainJob.createJob(), jobParameters);
   }
 
-  @Scheduled(fixedDelay = (1 * 10000))
+  // @Scheduled(fixedDelay = (1 * 10000))
+  @Scheduled(cron = "5 * * * * ?")
+  @SchedulerLock(name = "FilterScheduler_mainJob", lockAtLeastForString = "PT3S", lockAtMostForString = "PT5S")
   public void runMainJob() throws Exception {
     JobParameters jobParameters = new JobParametersBuilder()
     .addString("filter-msg-job", String.valueOf(System.currentTimeMillis()))
