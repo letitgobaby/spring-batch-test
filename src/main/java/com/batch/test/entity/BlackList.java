@@ -10,7 +10,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-@Entity
+@Entity(name = "BLACK_LIST")
 @Table(name = "BLACK_LIST")
 public class BlackList extends DateEntity {
   

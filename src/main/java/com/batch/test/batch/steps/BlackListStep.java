@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 import com.batch.test.entity.BlackList;
@@ -35,12 +36,13 @@ public class BlackListStep {
   private final BlackListRepo blackListRepo;
   private final int CHUNK_SIZE = 100;
 
+  private final EntityManager entityManager;
 
   @Bean
   @JobScope
   public Step stepOn() {
     return stepBuilderFactory.get("blackList-filter-step")
-    .<Message, BlackList>chunk(1) // this config for transaction size(i mean chunk size) of itemWriter
+    .<Message, BlackList>chunk(CHUNK_SIZE) // this config for transaction size(i mean chunk size) of itemWriter
     .reader(jpaItemReader(null))
     .processor(itemProcessor())
     .writer(jpaPagingItemWriter())
@@ -67,20 +69,24 @@ public class BlackListStep {
   public ItemProcessor<Message, BlackList> itemProcessor() {
     return message -> {
       User user = message.getUser();
+      BlackList upsertObject;
 
       // update entity
       Optional<BlackList> black = blackListRepo.findByUserId(user.getId());
       if (black.isPresent()) {
         BlackList entity = black.get();
-        entity.setCount(entity.getCount()+ 1);
-        return entity;
+        black.get().setCount(entity.getCount()+ 1);
+        upsertObject = entity;
+      } else {
+        // create new entity
+        BlackList newBlackObj = new BlackList();
+        newBlackObj.setCount(1L);
+        newBlackObj.setUser(user);
+        upsertObject = newBlackObj;
       }
 
-      // create new entity
-      BlackList newBlackObj = new BlackList();
-      newBlackObj.setCount(1L);
-      newBlackObj.setUser(user);
-      return newBlackObj;
+      entityManager.persist(upsertObject);
+      return upsertObject;
     };
   }
 
