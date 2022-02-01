@@ -71,11 +71,11 @@ public class BlackListStep {
       User user = message.getUser();
       BlackList upsertObject;
 
-      // update entity
       Optional<BlackList> black = blackListRepo.findByUserId(user.getId());
       if (black.isPresent()) {
+        // update entity
         BlackList entity = black.get();
-        black.get().setCount(entity.getCount()+ 1);
+        entity.setCount(entity.getCount()+ 1);
         upsertObject = entity;
       } else {
         // create new entity
